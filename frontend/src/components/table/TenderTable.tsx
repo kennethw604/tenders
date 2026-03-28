@@ -48,6 +48,7 @@ interface TenderTableProps {
     entity?: string;
   };
   onDataChange?: (data: PaginatedTendersResponse) => void;
+  statusFilter?: string;
   // Expose filter controls
   renderFilters?: (props: {
     setGlobalFilter: (filter: string) => void;
@@ -171,6 +172,7 @@ export default function TenderTable({
   initialFilters = {},
   onDataChange,
   renderFilters,
+  statusFilter = "",
 }: TenderTableProps) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [filteredTenders, setFilteredTenders] = useState<Tender[]>([]);
@@ -249,6 +251,17 @@ export default function TenderTable({
       fetchPaginatedData(paginationParams);
     }
   }, [paginationParams, usePagination, fetchPaginatedData]);
+
+  // Effect to update status filter from parent
+  useEffect(() => {
+    if (usePagination) {
+      setPaginationParams((prev) => ({
+        ...prev,
+        status: statusFilter || undefined,
+        page: 1,
+      }));
+    }
+  }, [statusFilter, usePagination]);
 
   // Update pagination params
   const updatePaginationParams = useCallback(
