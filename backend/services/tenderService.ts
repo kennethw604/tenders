@@ -126,6 +126,7 @@ export class TenderService {
     const { data, error, total } = await this.dbService.getTendersPaginated({
       page: Math.floor(params.offset / params.limit) + 1,
       limit: params.limit,
+      search: params.search,
       sortBy: params.sortBy,
       sortOrder: params.sortOrder as "asc" | "desc",
       filters: params.filters,

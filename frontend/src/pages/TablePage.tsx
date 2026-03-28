@@ -12,7 +12,11 @@ import { QuickFilters } from "../components/search";
 
 export default function TablePage() {
   const [, setPaginationData] = useState<PaginatedTendersResponse | null>(null);
-  const [statistics, setStatistics] = useState<TenderStatistics[]>([]);
+  const [statistics, setStatistics] = useState<TenderStatistics>({
+    total: 0,
+    byStatus: {},
+    byCategory: {},
+  });
   const [statsLoading, setStatsLoading] = useState(true);
   const [filterProps, setFilterProps] = useState<any>(null);
 
@@ -25,29 +29,7 @@ export default function TablePage() {
         setStatistics(stats);
       } catch (error) {
         console.error("Failed to fetch tender statistics:", error);
-        // Fallback to default stats
-        setStatistics([
-          {
-            source: "Government of Canada",
-            numberOfTendersAddedDaily: 0,
-            numberOfTendersAvailable: 0,
-          },
-          {
-            source: "Ontario Province",
-            numberOfTendersAddedDaily: 0,
-            numberOfTendersAvailable: 0,
-          },
-          {
-            source: "BC Government",
-            numberOfTendersAddedDaily: 0,
-            numberOfTendersAvailable: 0,
-          },
-          {
-            source: "Municipalities",
-            numberOfTendersAddedDaily: 0,
-            numberOfTendersAvailable: 0,
-          },
-        ]);
+        setStatistics({ total: 0, byStatus: {}, byCategory: {} });
       } finally {
         setStatsLoading(false);
       }

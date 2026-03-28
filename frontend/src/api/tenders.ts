@@ -84,19 +84,18 @@ export const getTendersPaginated = async (
 };
 
 export interface TenderStatistics {
-  source: string;
-  numberOfTendersAddedDaily: number;
-  numberOfTendersAvailable: number;
+  total: number;
+  byStatus: Record<string, number>;
+  byCategory: Record<string, number>;
 }
 
-export const getTenderStatistics = async (): Promise<TenderStatistics[]> => {
+export const getTenderStatistics = async (): Promise<TenderStatistics> => {
   try {
     const response = await apiClient.get("/tenders/statistics");
-    return Array.isArray(response.data) ? response.data : [];
+    return response.data;
   } catch (error) {
     console.error("Failed to fetch tender statistics:", error);
-    // Return empty array instead of throwing
-    return [];
+    return { total: 0, byStatus: {}, byCategory: {} };
   }
 };
 

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { tenderController } from "../container";
-import { authenticateUser } from "../middleware/authenticateUser";
 
 const router = Router();
 /**

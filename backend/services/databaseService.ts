@@ -289,6 +289,7 @@ export class DatabaseService {
   async getTendersPaginated(params: {
     page?: number;
     limit?: number;
+    search?: string;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
     filters?: Record<string, any>;
@@ -297,6 +298,7 @@ export class DatabaseService {
       const {
         page,
         limit,
+        search,
         sortBy = "created_at",
         sortOrder = "desc",
         filters = {},
@@ -310,6 +312,13 @@ export class DatabaseService {
         .select("*", { count: "exact" })
         .range(from, to)
         .order(sortBy, { ascending: sortOrder === "asc" });
+
+      // Apply text search if provided
+      if (search && search.trim()) {
+        query = query.or(
+          `title.ilike.%${search}%,description.ilike.%${search}%,contracting_entity_name.ilike.%${search}%`
+        );
+      }
 
       // Apply filters if provided
       Object.entries(filters).forEach(([key, value]) => {
