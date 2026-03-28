@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
   GearIcon,
-  CreditCardIcon,
   Users,
   SignOut,
 } from "@phosphor-icons/react";
