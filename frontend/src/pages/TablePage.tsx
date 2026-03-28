@@ -56,7 +56,7 @@ export default function TablePage() {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col">
       <PageHeader
         icon={<Table className="w-10 h-10 text-primary" />}
         title="Tender Table"
@@ -90,7 +90,7 @@ export default function TablePage() {
         ))}
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div>
         <TenderTable
           usePagination={true}
           onDataChange={handleDataChange}

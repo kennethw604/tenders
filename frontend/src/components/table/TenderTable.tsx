@@ -370,8 +370,8 @@ export default function TenderTable({
     }
 
     return (
-      <div className="h-full flex flex-col bg-surface rounded-lg border border-border">
-        <div className="flex-1 overflow-auto">
+      <div className="flex flex-col bg-surface rounded-lg border border-border">
+        <div>
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -532,7 +532,7 @@ export default function TenderTable({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col">
       {renderFilters?.({
         setGlobalFilter,
         tenders: usePagination ? [] : tenders || [],
@@ -550,7 +550,7 @@ export default function TenderTable({
           ? (filters: Record<string, string>) => updatePaginationParams(filters)
           : undefined,
       })}
-      <div className="flex-1 min-h-0">
+      <div>
         <TenderTableInner />
       </div>
     </div>
