@@ -507,6 +507,11 @@ export default function TenderTable({
                 ? paginatedData?.pagination.total || 0
                 : table.getRowCount()
             }
+            onPageSizeChange={
+              usePagination
+                ? (size: number) => updatePaginationParams({ limit: size, page: 1 })
+                : undefined
+            }
           />
         </div>
       </div>
