@@ -12,11 +12,8 @@ D-09: Store whatever bilingual content is available; missing fields stay None.
 import logging
 
 from scrapy.spiders import CSVFeedSpider
-from sqlalchemy import select
 
 from purchasingcad.items import TenderItem
-from purchasingcad.db.models.unspsc import GsinUnspscMapping
-from purchasingcad.db.session import AsyncSessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -94,22 +91,9 @@ class CanadaBuysCsvSpider(CSVFeedSpider):
         self._gsin_map: dict[str, str] = {}  # gsin_code -> unspsc_code
 
     async def _load_gsin_map(self) -> None:
-        """Preload GSIN->UNSPSC mapping into memory (D-08 performance pattern).
-
-        Called once before crawl starts. Loads the full mapping table into
-        a dict so parse_row can do O(1) lookups without per-row DB queries.
-        """
-        try:
-            async with AsyncSessionLocal() as session:
-                result = await session.execute(select(GsinUnspscMapping))
-                self._gsin_map = {
-                    row.gsin_code: row.unspsc_code
-                    for row in result.scalars()
-                    if row.unspsc_code
-                }
-            logger.info("Loaded %d GSIN->UNSPSC mappings", len(self._gsin_map))
-        except Exception:
-            logger.warning("Could not load GSIN mappings — UNSPSC lookup disabled")
+        """GSIN->UNSPSC mapping placeholder. Mapping table not available in Supabase mode."""
+        logger.info("GSIN->UNSPSC mapping skipped (no mapping table)")
+        self._gsin_map = {}
 
     def parse_row(self, response, row):
         """Map one CSV row to a TenderItem.

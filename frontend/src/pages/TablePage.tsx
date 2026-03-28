@@ -62,18 +62,15 @@ export default function TablePage() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex w-full justify-between items-start gap-4 mb-4">
-        <div className="flex-shrink-0">
-          <PageHeader
-            icon={<Table className="w-10 h-10 text-primary" />}
-            title="Tender Table"
-            description="Browse all procurement opportunities in a comprehensive table view"
-          />
-        </div>
-        <div className="flex items-start gap-4 flex-shrink-0">
-          {filterProps && <QuickFilters {...filterProps} />}
-          <TableStatsGrid stats={statistics} loading={statsLoading} />
-        </div>
+      <PageHeader
+        icon={<Table className="w-10 h-10 text-primary" />}
+        title="Tender Table"
+        description="Browse all procurement opportunities in a comprehensive table view"
+      />
+
+      <div className="flex flex-wrap items-center gap-4 mb-4">
+        <TableStatsGrid stats={statistics} loading={statsLoading} />
+        {filterProps && <QuickFilters {...filterProps} />}
       </div>
 
       <div className="flex-1 min-h-0">
