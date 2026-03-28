@@ -1,7 +1,5 @@
 *.env
 
-
-
 # Node dependencies
 node_modules/
 package-lock.json
@@ -10,3 +8,10 @@ package-lock.json
 __pycache__/
 *.py[cod]
 poetry.lock
+
+# SSL certs
+nginx/certs/
+
+# IDE
+.vscode/
+.idea/
