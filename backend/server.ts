@@ -30,18 +30,18 @@ app.get("/", (req, res) => {
 });
 
 // Use route modules
-app.use("/ai", aiRoutes);
-app.use("/tenders", tendersRoutes);
-app.use("/tender-notice", tenderNoticeRoutes);
-app.use("/auth", authRoutes);
-app.use("/profile", profileRoutes);
-app.use("/chat", chatRoutes);
-app.use("/bookmarks", bookmarkRoutes);
-app.use("/subscriptions", subscriptionRoutes);
-app.use("/scraping", scrapingRoutes);
-app.use("/search", searchRoutes);
-app.use("/notifications", notificationRoutes);
-app.use("/teams", teamRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/tenders", tendersRoutes);
+app.use("/api/tender-notice", tenderNoticeRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/scraping", scrapingRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/teams", teamRoutes);
 
 /**
  * Scraping test playground page
