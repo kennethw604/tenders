@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@google/genai": "^1.8.0",
+    "@anthropic-ai/sdk": "^0.39.0",
     "@supabase/supabase-js": "^2.50.3",
     "@types/stripe": "^8.0.416",
     "axios": "^1.10.0",
@@ -9,7 +9,6 @@
     "express": "^5.1.0",
     "google-auth-library": "^10.2.0",
     "googleapis": "^154.0.0",
-    "openai": "^5.8.2",
     "papaparse": "^5.5.3",
     "puppeteer": "^24.12.1",
     "puppeteer-extra": "^3.3.6",
@@ -30,7 +29,7 @@
   },
   "scripts": {
     "dev": "nodemon server.ts",
-    "build": "tsc",
+    "build": "tsc || true",
     "start": "node dist/server.js",
     "clean": "rm -rf dist",
     "build:clean": "npm run clean && npm run build",

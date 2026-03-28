@@ -1,1 +1,1 @@
-export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+// AI is handled server-side via Anthropic Claude

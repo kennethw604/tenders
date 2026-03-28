@@ -1,5 +1,4 @@
-import OpenAI from "openai";
-import { GoogleGenAI, Type } from "@google/genai";
+import Anthropic from "@anthropic-ai/sdk";
 import { Database } from "../database.types";
 
 type Tender = Database["public"]["Tables"]["tenders"]["Row"];
@@ -9,41 +8,37 @@ type TenderSummaries = {
 }[];
 
 export class AiService {
-  private openai: OpenAI;
-  private genAI: GoogleGenAI;
+  private anthropic: Anthropic;
+  private model: string;
 
   // Chat sessions storage (in-memory for now)
-  private chatSessions = new Map<string, any>();
+  private chatSessions = new Map<string, { role: string; content: string }[]>();
 
   constructor() {
-    this.openai = new OpenAI({
-      baseURL: process.env.GEMINI_BASE_URL,
-      apiKey: process.env.GEMINI_API_KEY,
+    this.anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
     });
-
-    this.genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+    this.model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
   }
 
   async generateLeads(prompt: string) {
-    const completion = await this.openai.chat.completions.create({
-      model: process.env.GEMINI_AI_MODEL_ID || "",
-      messages: [
-        { role: "developer", content: "You are a helpful assistant." },
-        { role: "user", content: prompt },
-      ],
+    const response = await this.anthropic.messages.create({
+      model: this.model,
+      max_tokens: 1024,
+      system: "You are a helpful assistant.",
+      messages: [{ role: "user", content: prompt }],
     });
-    return completion.choices[0].message.content;
+    return response.content[0].type === "text" ? response.content[0].text : "";
   }
 
   async analyzeRfp(rfpData: any) {
-    const completion = await this.openai.chat.completions.create({
-      model: process.env.GEMINI_AI_MODEL_ID || "",
-      messages: [
-        { role: "assistant", content: "You are an AI that summarizes data" },
-        { role: "user", content: JSON.stringify(rfpData) },
-      ],
+    const response = await this.anthropic.messages.create({
+      model: this.model,
+      max_tokens: 1024,
+      system: "You are an AI that summarizes data",
+      messages: [{ role: "user", content: JSON.stringify(rfpData) }],
     });
-    return completion.choices[0].message.content;
+    return response.content[0].type === "text" ? response.content[0].text : "";
   }
 
   async filterTendersBySummary(tenders: TenderSummaries, query: string) {
@@ -56,9 +51,14 @@ export class AiService {
       .join("\n");
 
     try {
-      const response = await this.genAI.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `You are a helpful assistant tasked with filtering government tenders based on a user query.
+      const response = await this.anthropic.messages.create({
+        model: this.model,
+        max_tokens: 1024,
+        system: `You are an expert in government tenders. Your task is to find which tenders match the given query based on their summaries. Return only a JSON array of IDs.`,
+        messages: [
+          {
+            role: "user",
+            content: `You are a helpful assistant tasked with filtering government tenders based on a user query.
 
 Given a list of tenders in the format:
 id: <ID> + summary: <SUMMARY>
@@ -70,25 +70,24 @@ Tenders:
 ${tendersToAnalyze}
 
 Return only a valid JSON array of IDs, like ["abc123", "def456"].`,
-        config: {
-          systemInstruction: `You are an expert in government tenders. Your task is to find which tenders match the given query based on their summaries. Return only a JSON array of IDs.`,
-          responseMimeType: "application/json",
-        },
+          },
+        ],
       });
-      console.log("response", response.text);
-      return JSON.parse(response.text || "[]");
+      const text =
+        response.content[0].type === "text" ? response.content[0].text : "[]";
+      console.log("response", text);
+      return JSON.parse(text);
     } catch (error) {
-      console.error("Error generating tender summary with Gemini:", error);
-      throw new Error("Failed to generate tender summary");
+      console.error("Error filtering tenders:", error);
+      throw new Error("Failed to filter tenders");
     }
   }
+
   async filterTenders(prompt: string, tenderData: any[]) {
-    const completion = await this.openai.chat.completions.create({
-      model: process.env.GEMINI_AI_MODEL_ID || "",
-      messages: [
-        {
-          role: "assistant",
-          content: `You are an AI that helps users filter a database of government tenders. 
+    const response = await this.anthropic.messages.create({
+      model: this.model,
+      max_tokens: 1024,
+      system: `You are an AI that helps users filter a database of government tenders.
 You MUST return a valid JSON response matching this exact format:
 {
   "matches": ["REF1", "REF2"]
@@ -103,18 +102,16 @@ Your task:
 2. Find matches for this request: "${prompt}"
 3. Return ONLY valid JSON with matching reference IDs
 
-The tender data to analyze is: `,
-        },
-        { role: "user", content: JSON.stringify(tenderData) },
-      ],
-      response_format: { type: "json_object" },
+The tender data to analyze is:`,
+      messages: [{ role: "user", content: JSON.stringify(tenderData) }],
     });
-    return completion.choices[0].message.content || "{}";
+    return response.content[0].type === "text"
+      ? response.content[0].text
+      : "{}";
   }
 
   async generatePrecomputedSummary(tender: Tender): Promise<string> {
     try {
-      // Extract key information from tender (updated for tenders schema)
       const keyInfo = {
         title: tender.title,
         description: tender.description,
@@ -135,16 +132,17 @@ Regions: ${keyInfo.regions}
 
 Return ONLY the summary text, no JSON, no formatting. Focus on what they're buying, from which organization, and key constraints like deadline or location.`;
 
-      const response = await this.genAI.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-          systemInstruction:
-            "You are an expert at creating concise, business-focused summaries of government tenders. Your summaries help businesses quickly understand opportunities. Be direct and factual.",
-        },
+      const response = await this.anthropic.messages.create({
+        model: this.model,
+        max_tokens: 300,
+        system:
+          "You are an expert at creating concise, business-focused summaries of government tenders. Your summaries help businesses quickly understand opportunities. Be direct and factual.",
+        messages: [{ role: "user", content: prompt }],
       });
-      console.log("Precomputed summary:", response.text);
-      return response.text?.trim() || "No summary available";
+      const text =
+        response.content[0].type === "text" ? response.content[0].text : "";
+      console.log("Precomputed summary:", text);
+      return text.trim() || "No summary available";
     } catch (error) {
       console.error("Error generating precomputed summary:", error);
       return "Summary generation failed";
@@ -153,122 +151,89 @@ Return ONLY the summary text, no JSON, no formatting. Focus on what they're buyi
 
   async generateTenderSummary(tenderId: string, tenderData: string) {
     try {
-      const response = await this.genAI.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `Analyze this government tender data and provide a concise, actionable summary: ${tenderData}`,
-        config: {
-          maxOutputTokens: 300,
-          systemInstruction: `You are BreezeAI, an expert AI assistant specialized in analyzing government procurement tenders. Create a concise, business-focused summary that helps companies quickly understand if this opportunity is worth pursuing.
+      const response = await this.anthropic.messages.create({
+        model: this.model,
+        max_tokens: 300,
+        system: `You are BreezeAI, an expert AI assistant specialized in analyzing government procurement tenders. Create a concise, business-focused summary that helps companies quickly understand if this opportunity is worth pursuing.
 
-Focus on the most important information that drives business decisions.`,
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              summary: {
-                type: Type.STRING,
-                description:
-                  "2-3 sentence executive summary of the opportunity",
-              },
-              keyDetails: {
-                type: Type.OBJECT,
-                properties: {
-                  objective: {
-                    type: Type.STRING,
-                    description: "What they're buying/seeking",
-                  },
-                  category: {
-                    type: Type.STRING,
-                    description: "Procurement category",
-                  },
-                  value: {
-                    type: Type.STRING,
-                    description: "Estimated value or budget range",
-                  },
-                },
-                propertyOrdering: ["objective", "category", "value"],
-              },
-              requirements: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.STRING,
-                },
-                description: "Top 3-5 key requirements",
-              },
-              recommendation: {
-                type: Type.OBJECT,
-                properties: {
-                  priority: {
-                    type: Type.STRING,
-                    description: "High, Medium, Low, or Skip",
-                  },
-                  reason: {
-                    type: Type.STRING,
-                    description: "Brief reason for the recommendation",
-                  },
-                },
-                propertyOrdering: ["priority", "reason"],
-              },
-            },
-            propertyOrdering: [
-              "summary",
-              "keyDetails",
-              "requirements",
-              "recommendation",
-            ],
+You MUST respond with valid JSON matching this schema:
+{
+  "summary": "2-3 sentence executive summary of the opportunity",
+  "keyDetails": {
+    "objective": "What they're buying/seeking",
+    "category": "Procurement category",
+    "value": "Estimated value or budget range"
+  },
+  "requirements": ["Top 3-5 key requirements"],
+  "recommendation": {
+    "priority": "High, Medium, Low, or Skip",
+    "reason": "Brief reason for the recommendation"
+  }
+}`,
+        messages: [
+          {
+            role: "user",
+            content: `Analyze this government tender data and provide a concise, actionable summary: ${tenderData}`,
           },
-        },
+        ],
       });
 
-      return { summary: response.text };
+      const text =
+        response.content[0].type === "text" ? response.content[0].text : "{}";
+      return { summary: text };
     } catch (error) {
-      console.error("Error generating tender summary with Gemini:", error);
+      console.error("Error generating tender summary:", error);
       throw new Error("Failed to generate tender summary");
     }
   }
 
   async createChatSession(sessionId: string) {
-    const chat = this.genAI.chats.create({
-      model: "gemini-2.5-flash",
-      history: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: "Hello! I'm looking for help with government tenders and procurement opportunities.",
-            },
-          ],
-        },
-        {
-          role: "model",
-          parts: [
-            {
-              text: "Hello! I'm here to help you with government tenders and procurement opportunities. I can answer questions about tender processes, requirements, deadlines, and help you understand specific opportunities. What would you like to know?",
-            },
-          ],
-        },
-      ],
-    });
+    const history = [
+      {
+        role: "user",
+        content:
+          "Hello! I'm looking for help with government tenders and procurement opportunities.",
+      },
+      {
+        role: "assistant",
+        content:
+          "Hello! I'm here to help you with government tenders and procurement opportunities. I can answer questions about tender processes, requirements, deadlines, and help you understand specific opportunities. What would you like to know?",
+      },
+    ];
 
-    this.chatSessions.set(sessionId, chat);
-    return chat;
+    this.chatSessions.set(sessionId, history);
+    return history;
   }
 
   async sendChatMessage(sessionId: string, message: string) {
     try {
-      let chat = this.chatSessions.get(sessionId);
+      let history = this.chatSessions.get(sessionId);
 
-      if (!chat) {
-        // Create new chat session if it doesn't exist
-        chat = await this.createChatSession(sessionId);
+      if (!history) {
+        history = (await this.createChatSession(sessionId)) as {
+          role: string;
+          content: string;
+        }[];
       }
 
-      const response = await chat.sendMessage({
-        message: message,
+      history.push({ role: "user", content: message });
+
+      const response = await this.anthropic.messages.create({
+        model: this.model,
+        max_tokens: 1024,
+        system:
+          "You are a helpful AI assistant specialized in government tenders and procurement opportunities.",
+        messages: history as any,
       });
 
+      const assistantMessage =
+        response.content[0].type === "text" ? response.content[0].text : "";
+      history.push({ role: "assistant", content: assistantMessage });
+
+      this.chatSessions.set(sessionId, history);
+
       return {
-        message: response.text,
+        message: assistantMessage,
         sessionId: sessionId,
       };
     } catch (error) {
