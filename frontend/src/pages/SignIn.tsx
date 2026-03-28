@@ -9,7 +9,6 @@ import { signIn } from "../features/auth/authThunks";
 import { useAppDispatch } from "../app/hooks";
 import { useSearchParams } from "react-router-dom";
 import { selectAuthError } from "../features/auth/authSelectors";
-import { setAuthError } from "../features/auth/authSlice";
 import { LogoTitle } from "../components/ui/LogoTitle";
 
 export default function SignIn() {
@@ -25,7 +24,6 @@ export default function SignIn() {
   });
   const isAuthLoading = useSelector(selectAuthLoading);
   const authError = useSelector(selectAuthError);
-  dispatch(setAuthError(null));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

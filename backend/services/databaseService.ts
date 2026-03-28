@@ -403,12 +403,24 @@ export class DatabaseService {
     }
   }
 
-  async signOutUser() {}
+  async signOutUser() {
+    // Server-side signout is a no-op since sessions are managed via tokens
+    // The client clears its stored token
+    return { message: "Successfully signed out" };
+  }
 
-  async getUser() {
+  async getUser(accessToken: string) {
     try {
+      const { data, error } = await this.supabase.auth.getUser(accessToken);
+
+      if (error) {
+        console.error("Error getting user:", error);
+        throw error;
+      }
+
+      return { user: data.user };
     } catch (error) {
-      console.error("Failed to get session:", error);
+      console.error("Failed to get user:", error);
       throw error;
     }
   }

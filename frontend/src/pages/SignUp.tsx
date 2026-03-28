@@ -14,7 +14,6 @@ import { LogoTitle } from "../components/ui/LogoTitle";
 
 export default function SignUp() {
   const dispatch = useAppDispatch();
-  dispatch(setAuthError(null));
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -37,11 +36,11 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreedToTerms) {
-      setAuthError("Please agree to the terms and conditions");
+      dispatch(setAuthError("Please agree to the terms and conditions"));
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      setAuthError("Passwords don't match");
+      dispatch(setAuthError("Passwords don't match"));
       return;
     }
 
@@ -54,17 +53,14 @@ export default function SignUp() {
         password: formData.password,
       });
       console.log("SignUp response:", response);
-      if (response.session == null) {
-        setAuthError("An unexpected error occurred");
-      } else {
-        navigate("/sign-in?confirm-email=true");
-      }
+      // Success - navigate to sign-in page (session may be null if email confirmation required)
+      navigate("/sign-in?confirm-email=true");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred";
-      setAuthError(errorMessage);
+      dispatch(setAuthError(errorMessage));
     } finally {
-      setAuthLoading(false);
+      dispatch(setAuthLoading(false));
     }
   };
 

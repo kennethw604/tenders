@@ -47,5 +47,30 @@ services:
       - es-data:/usr/share/elasticsearch/data
     restart: unless-stopped
 
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+
+  scraper:
+    build: ./scraper
+    env_file:
+      - ./scraper/.env
+    depends_on:
+      - redis
+    command: celery -A purchasingcad.celery_app worker --loglevel=info --pool=solo
+    restart: unless-stopped
+
+  celery-beat:
+    build: ./scraper
+    env_file:
+      - ./scraper/.env
+    depends_on:
+      - redis
+      - scraper
+    command: celery -A purchasingcad.celery_app beat --loglevel=info
+    restart: unless-stopped
+
 volumes:
   es-data:

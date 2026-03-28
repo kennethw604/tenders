@@ -63,11 +63,17 @@ export class AuthController {
 
   getUser = async (req: Request, res: Response) => {
     try {
-      const user = await this.databaseService.getUser();
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "No access token provided" });
+      }
+
+      const accessToken = authHeader.split(" ")[1];
+      const user = await this.databaseService.getUser(accessToken);
       res.json(user);
     } catch (error: any) {
       console.error("Error in getUser:", error);
-      res.status(500).json({ error: error.message || "Failed to get session" });
+      res.status(401).json({ error: error.message || "Failed to get user" });
     }
   };
 

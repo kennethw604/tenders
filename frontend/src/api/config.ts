@@ -13,6 +13,20 @@ axios.defaults.baseURL = API_BASE_URL;
 // Export the configured axios instance as 'api' for compatibility
 export const api = axios;
 
+// Add request interceptor to attach auth token
+axios.interceptors.request.use(
+  (config) => {
+    const accessToken = localStorage.getItem("access_token");
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Add response interceptor for global error handling
 axios.interceptors.response.use(
   (response) => response,
@@ -22,9 +36,6 @@ axios.interceptors.response.use(
       `API Error [${operation}]:`,
       error.response?.data || error.message
     );
-
-    // You can add global error notifications here
-    // toast.error(`Failed to ${operation}`);
 
     return Promise.reject(error);
   }

@@ -1,18 +1,15 @@
 import axios from "axios";
-import { supabaseClient } from "./supabaseClient";
+
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:4000",
 });
 
 apiClient.interceptors.request.use(
   async (config) => {
-    const {
-      data: { session },
-    } = await supabaseClient.auth.getSession();
+    const accessToken = localStorage.getItem("access_token");
 
-    console.log("API Client Session:", session?.user?.email || 'No session');
-    if (session && session.access_token) {
-      config.headers.Authorization = `Bearer ${session.access_token}`;
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
@@ -30,8 +27,11 @@ apiClient.interceptors.response.use(
       error.response?.data || error.message
     );
 
-    // You can add global error notifications here
-    // toast.error(`Failed to ${operation}`);
+    // If we get a 401, clear stored tokens
+    if (error.response?.status === 401) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+    }
 
     return Promise.reject(error);
   }

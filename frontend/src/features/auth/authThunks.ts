@@ -1,4 +1,10 @@
-import { getUser, createOrUpdateProfile, getProfile } from "../../api";
+import {
+  getUser,
+  createOrUpdateProfile,
+  getProfile,
+  signInUser,
+  signOutUser,
+} from "../../api";
 import {
   setUser,
   setProfile,
@@ -9,7 +15,6 @@ import {
 import { type AppDispatch } from "../../app/configureStore";
 import type { Database } from "../../../database.types";
 import type { ProfileData } from "../../api/profile";
-import { supabaseClient } from "../../client/supabaseClient";
 
 // Use database types as source of truth
 type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
@@ -50,20 +55,34 @@ const convertAPIProfileToDatabase = (
     updated_at: apiProfile.updated_at ?? null,
   };
 };
+
+/** Store auth tokens from session response */
+const storeTokens = (session: { access_token: string; refresh_token?: string } | null) => {
+  if (session?.access_token) {
+    localStorage.setItem("access_token", session.access_token);
+    if (session.refresh_token) {
+      localStorage.setItem("refresh_token", session.refresh_token);
+    }
+  }
+};
+
+/** Clear stored auth tokens */
+const clearTokens = () => {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+};
+
 export const signIn =
   (email: string, password: string) => async (dispatch: AppDispatch) => {
     dispatch(setAuthLoading(true));
+    dispatch(setAuthError(null));
 
     try {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const data = await signInUser({ email, password });
 
-      if (error) {
-        console.error("Error signing in user:", error);
-        throw error;
-      }
+      // Store the session tokens for subsequent API calls
+      storeTokens(data.session);
+
       // Get or create user profile
       const user = data.user;
       if (!user?.id) {
@@ -102,7 +121,11 @@ export const signIn =
       dispatch(setAuthLoading(false));
     } catch (error) {
       console.error("Sign in error:", error);
-      dispatch(setAuthError("Failed to sign in"));
+      dispatch(
+        setAuthError(
+          error instanceof Error ? error.message : "Failed to sign in"
+        )
+      );
       dispatch(setAuthLoading(false));
     }
   };
@@ -110,28 +133,30 @@ export const signIn =
 export const signOut = () => async (dispatch: AppDispatch) => {
   dispatch(setAuthLoading(true));
   try {
-    const { error } = await supabaseClient.auth.signOut();
-
-    if (error) {
-      console.error("Error getting session:", error);
-      throw error;
-    }
-    dispatch(logout());
+    await signOutUser();
   } catch (error) {
     console.error("Sign out error:", error);
   }
+  clearTokens();
+  dispatch(logout());
   dispatch(setAuthLoading(false));
 };
 
 export const loadSession = () => async (dispatch: AppDispatch) => {
+  // If no stored token, skip the session load
+  const accessToken = localStorage.getItem("access_token");
+  if (!accessToken) {
+    dispatch(setAuthLoading(false));
+    return;
+  }
+
   dispatch(setAuthLoading(true));
 
   try {
     const response = await getUser();
-    const user = response.user; // Fix: access user directly from response
+    const user = response.user;
 
     if (user?.id) {
-      console.log("user", user);
       const profileResponse = await getProfile(user.id);
 
       if (profileResponse.error) {
@@ -153,9 +178,14 @@ export const loadSession = () => async (dispatch: AppDispatch) => {
           })
         );
       }
+    } else {
+      // Token is invalid/expired, clear it
+      clearTokens();
     }
   } catch (error) {
     console.error("Load session error:", error);
+    // Token likely expired/invalid
+    clearTokens();
   }
 
   dispatch(setAuthLoading(false));
