@@ -3,7 +3,6 @@ import { tenderController } from "../container";
 import { authenticateUser } from "../middleware/authenticateUser";
 
 const router = Router();
-router.use(authenticateUser);
 /**
  * Get recommended tenders based on user profile
  * @route GET /recommended

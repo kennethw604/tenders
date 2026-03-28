@@ -5,7 +5,7 @@ import { authenticateUser } from '../middleware/authenticateUser';
 const router = express.Router();
 
 // Apply authentication middleware to all search routes
-router.use(authenticateUser);
+// router.use(authenticateUser); // disabled for internal use
 
 /**
  * Advanced Search Routes

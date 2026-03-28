@@ -3,7 +3,7 @@ import { tenderNoticeController } from "../container";
 import { authenticateUser } from "../middleware/authenticateUser";
 
 const router = Router();
-router.use(authenticateUser);
+// router.use(authenticateUser); // disabled for internal use
 /**
  * Fetches a specific tender notice by ID
  * @route GET /:id

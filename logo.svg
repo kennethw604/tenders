@@ -7,10 +7,10 @@
           font-size="20"
           font-family="LexendDeca, sans-serif"
         >
-          <tspan fill="#f75567" font-weight="300">
+          <tspan fill="#2563eb" font-weight="300">
             maple
           </tspan>
-          <tspan fill="#f75567" font-weight="700" dy="-0.5">
+          <tspan fill="#2563eb" font-weight="700" dy="-0.5">
             Bids
           </tspan>
         </text>

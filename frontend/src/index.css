@@ -23,10 +23,10 @@
   /* Canadian Heritage Theme - Clean & Consistent */
 
   /* Brand Colors */
-  --color-primary: #f75567; /* Main brand / action color */
-  --color-secondary: #f3f4f6; /* Soft neutral background */
-  --color-accent: #dc2626; /* Canadian red accent */
-  --color-maple: #f59e0b; /* Maple gold for highlights */
+  --color-primary: #2563eb; /* Main brand / action color */
+  --color-secondary: #f0f4ff; /* Soft blue background */
+  --color-accent: #1d4ed8; /* Deeper blue accent */
+  --color-maple: #3b82f6; /* Light blue for highlights */
 
   /* Backgrounds */
   --color-bg: #fafafa; /* Slightly warmer page background */
@@ -56,8 +56,8 @@
   --color-match-fair: #6b7280; /* Below 75% match - muted gray */
 
   /* Interactive States */
-  --color-primary-dark: #e53e3e; /* Darker primary for hover states */
-  --color-primary-light: #feb2b2; /* Lighter primary for backgrounds */
+  --color-primary-dark: #1d4ed8; /* Darker primary for hover states */
+  --color-primary-light: #bfdbfe; /* Lighter primary for backgrounds */
 }
 
 
