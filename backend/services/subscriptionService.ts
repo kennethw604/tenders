@@ -15,7 +15,7 @@ export class SubscriptionService {
   private databaseService: DatabaseService;
 
   constructor(databaseService: DatabaseService) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_placeholder");
     this.databaseService = databaseService;
   }
 
