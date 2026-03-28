@@ -6,52 +6,8 @@ import { getRecommendedTenders } from "../api/tenders";
 import type { TenderSearchResult } from "../api/types";
 import { useAuth } from "../hooks/auth";
 
-// Mock activities since we removed analytics
-const mockActivities = [
-  {
-    id: 1,
-    action: "New Match" as const,
-    title: "IT Infrastructure Modernization - Health Canada",
-    time: new Date().toISOString(),
-    description:
-      "Comprehensive IT infrastructure upgrade including cloud migration and security enhancements.",
-    location: "Ottawa, ON",
-    publishDate: new Date().toISOString().split("T")[0],
-    closingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-  },
-  {
-    id: 2,
-    action: "Saved" as const,
-    title: "Software Development Services - CBSA",
-    time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    description:
-      "Development of custom border management software solutions with AI-powered risk assessment.",
-    location: "Toronto, ON",
-    publishDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-    closingDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-  },
-  {
-    id: 3,
-    action: "Viewed" as const,
-    title: "Cybersecurity Consulting - DND",
-    time: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    description:
-      "Advanced cybersecurity consulting services for critical defense infrastructure.",
-    location: "Kingston, ON",
-    publishDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-    closingDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-  },
-];
+// No mock activities — real data only
+const mockActivities: any[] = [];
 
 export default function Home() {
   const { profile } = useAuth();

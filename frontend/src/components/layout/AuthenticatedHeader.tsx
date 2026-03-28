@@ -51,7 +51,7 @@ export default function AuthenticatedHeader({
         <div className="flex items-center gap-4">
           {/* Individual Navigation Links */}
           <Link
-            to="/settings"
+            to="/profile"
             className="flex items-center gap-2 px-3 py-2 font-medium text-text-muted hover:text-text hover:bg-background rounded-lg transition-colors"
           >
             <GearIcon className="w-5 h-5" />
@@ -59,15 +59,7 @@ export default function AuthenticatedHeader({
           </Link>
 
           <Link
-            to="/plans"
-            className="flex items-center gap-2 px-3 py-2 font-medium text-text-muted hover:text-text hover:bg-background rounded-lg transition-colors"
-          >
-            <CreditCardIcon className="w-5 h-5" />
-            <span>Plans</span>
-          </Link>
-
-          <Link
-            to="/team"
+            to="/teams"
             className="flex items-center gap-2 px-3 py-2 font-medium text-text-muted hover:text-text hover:bg-background rounded-lg transition-colors"
           >
             <Users className="w-5 h-5" />
