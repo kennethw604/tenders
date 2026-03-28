@@ -76,12 +76,12 @@ Delivery Location: ${tender.delivery_location || "Not specified"}
 
   if (compact) {
     return (
-      <div className="w-full bg-primary border border-primary rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+      <div className="w-full bg-surface border border-border rounded-lg p-4">
+        <h3 className="text-lg font-semibold text-text mb-3 flex items-center gap-2">
           <Sparkle className="w-4 h-4" />
           AI Summary
         </h3>
-        <div className="text-white text-sm">
+        <div className="text-text text-sm">
           {tenderSummary &&
           typeof tenderSummary === "object" &&
           Object.keys(tenderSummary).length > 0 ? (
@@ -122,12 +122,12 @@ Delivery Location: ${tender.delivery_location || "Not specified"}
   }
 
   return (
-    <div className="w-full bg-primary border border-primary rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+    <div className="w-full bg-surface border border-border rounded-lg p-6">
+      <h2 className="text-xl font-semibold text-text mb-4 flex items-center gap-2">
         <Sparkle className="w-5 h-5" />
         Tender Notice Summary by BreezeAI
       </h2>
-      <div className="text-white">
+      <div className="text-text">
         {tenderSummary &&
         typeof tenderSummary === "object" &&
         Object.keys(tenderSummary).length > 0 ? (
@@ -144,19 +144,19 @@ Delivery Location: ${tender.delivery_location || "Not specified"}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                   <div>
                     <span className="font-medium">Objective:</span>
-                    <p className="text-white/90">
+                    <p className="text-text/90">
                       {tenderSummary.keyDetails.objective || "Not specified"}
                     </p>
                   </div>
                   <div>
                     <span className="font-medium">Category:</span>
-                    <p className="text-white/90">
+                    <p className="text-text/90">
                       {tenderSummary.keyDetails.category || "Not specified"}
                     </p>
                   </div>
                   <div>
                     <span className="font-medium">Value:</span>
-                    <p className="text-white/90">
+                    <p className="text-text/90">
                       {tenderSummary.keyDetails.value || "Not specified"}
                     </p>
                   </div>
@@ -172,8 +172,8 @@ Delivery Location: ${tender.delivery_location || "Not specified"}
                   <ul className="text-sm space-y-1">
                     {tenderSummary.requirements.map((req, index) => (
                       <li key={index} className="flex items-start gap-2">
-                        <span className="text-white/60 mt-1">•</span>
-                        <span className="text-white/90">{req}</span>
+                        <span className="text-text/60 mt-1">•</span>
+                        <span className="text-text/90">{req}</span>
                       </li>
                     ))}
                   </ul>
@@ -198,7 +198,7 @@ Delivery Location: ${tender.delivery_location || "Not specified"}
                     {tenderSummary.recommendation.priority || "Medium"}
                   </span>
                 </div>
-                <p className="text-sm text-white/90">
+                <p className="text-sm text-text/90">
                   {tenderSummary.recommendation.reason ||
                     "Analysis in progress..."}
                 </p>
