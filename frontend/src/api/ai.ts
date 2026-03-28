@@ -17,7 +17,7 @@ export const generateLeads = async (
   formData: LeadGenerationFormData
 ): Promise<LeadGenerationResponse> => {
   try {
-    const response = await axios.post("/ai/generateLeads", formData);
+    const response = await apiClient.post("/ai/generateLeads", formData);
     return response.data;
   } catch (error) {
     return handleApiError(error, "Generate leads");
@@ -33,7 +33,7 @@ export const getRfpAnalysis = async (
   rfpData: RfpAnalysisData
 ): Promise<RfpAnalysisResponse> => {
   try {
-    const response = await axios.post("/ai/getRfpAnalysis", rfpData);
+    const response = await apiClient.post("/ai/getRfpAnalysis", rfpData);
     return response.data;
   } catch (error) {
     return handleApiError(error, "Get RFP analysis");
