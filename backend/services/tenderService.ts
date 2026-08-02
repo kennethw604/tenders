@@ -121,6 +121,7 @@ export class TenderService {
       category?: string;
       region?: string;
       entity?: string;
+      procurement_type?: string;
     };
   }) {
     const { data, error, total } = await this.dbService.getTendersPaginated({

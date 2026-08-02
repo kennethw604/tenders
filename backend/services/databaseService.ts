@@ -320,10 +320,20 @@ export class DatabaseService {
         );
       }
 
+      // Map filter keys to actual DB column names
+      const filterColumnMap: Record<string, string> = {
+        status: "status",
+        category: "category_primary",
+        region: "contracting_entity_province",
+        entity: "contracting_entity_name",
+        procurement_type: "procurement_type",
+      };
+
       // Apply filters if provided
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
-          query = query.eq(key, value);
+          const column = filterColumnMap[key] || key;
+          query = query.eq(column, value);
         }
       });
 

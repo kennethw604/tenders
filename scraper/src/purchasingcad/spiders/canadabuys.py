@@ -47,10 +47,20 @@ STATUS_MAP = {
 }
 
 # Procurement category -> normalized category
+# CSV values can be full text ("Goods") or coded ("*gd", "*srv", "*cnst")
+# Multi-value entries like "*srvtgd" or "*srv\n*gd" also occur
 CATEGORY_MAP = {
     "goods": "goods",
     "services": "services",
     "construction": "works",
+    # Coded variants from CSV
+    "*gd": "goods",
+    "*srv": "services",
+    "*cnst": "works",
+    "*srvtgd": "services",  # services + goods combo → primary is services
+    "*gd\n*srv": "goods",
+    "*srv\n*gd": "services",
+    "*gd\n*srvtgd": "goods",
 }
 
 
@@ -132,11 +142,19 @@ class CanadaBuysCsvSpider(CSVFeedSpider):
         status_raw = (row.get("tenderStatus-appelOffresStatut-eng") or "").strip().lower()
         status = STATUS_MAP.get(status_raw, status_raw or None)
 
-        # Category normalization: lowercase first, then map
+        # Category normalization: lookup coded or text values
         category_raw = (
             row.get("procurementCategory-categorieApprovisionnement") or ""
         ).strip().lower()
-        category = CATEGORY_MAP.get(category_raw, category_raw or None)
+        category = CATEGORY_MAP.get(category_raw)
+        if not category and category_raw:
+            # Handle multi-value: pick first recognized code
+            for part in category_raw.replace("\n", " ").split():
+                if part in CATEGORY_MAP:
+                    category = CATEGORY_MAP[part]
+                    break
+            if not category:
+                category = category_raw  # preserve raw if no mapping
 
         yield TenderItem(
             source_slug="canadabuys",
@@ -157,5 +175,20 @@ class CanadaBuysCsvSpider(CSVFeedSpider):
             value_amount=None,
             value_currency="CAD",
             source_url=row.get("noticeURL-URLavis-eng") or None,
-            raw_ocds=dict(row),  # Store entire CSV row as raw payload (D-10 analog)
+            raw_ocds=dict(row),
+            # Extended fields — directly from CSV columns
+            notice_type=row.get("noticeType-avisType-eng") or None,
+            procurement_method=row.get("procurementMethod-methodeApprovisionnement-eng") or None,
+            contact_name=row.get("contactInfoName-informationsContactNom") or None,
+            contact_email=row.get("contactInfoEmail-informationsContactCourriel") or None,
+            contact_phone=row.get("contactInfoPhone-contactInfoTelephone") or None,
+            buyer_city=(row.get("contractingEntityAddressCity-entiteContractanteAdresseVille-eng") or "").strip() or None,
+            buyer_postal_code=(row.get("contractingEntityAddressPostalCode-entiteContractanteAdresseCodePostal") or "").strip() or None,
+            delivery_regions=row.get("regionsOfDelivery-regionsLivraison-eng") or None,
+            end_user_entity=row.get("endUserEntitiesName-nomEntitesUtilisateurFinal-eng") or None,
+            contract_start_date=row.get("expectedContractStartDate-dateDebutContratPrevue") or None,
+            contract_end_date=row.get("expectedContractEndDate-dateFinContratPrevue") or None,
+            selection_criteria=row.get("selectionCriteria-criteresSelection-eng") or None,
+            trade_agreements=row.get("tradeAgreements-accordsCommerciaux-eng") or None,
+            solicitation_number=row.get("solicitationNumber-numeroSollicitation") or None,
         )

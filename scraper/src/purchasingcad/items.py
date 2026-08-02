@@ -26,3 +26,18 @@ class TenderItem(scrapy.Item):
     value_currency = scrapy.Field()    # "CAD" default
     source_url = scrapy.Field()
     raw_ocds = scrapy.Field()          # dict — full raw record
+    # Extended fields (populated by sources that provide them)
+    notice_type = scrapy.Field()       # "Request for Proposal", etc.
+    procurement_method = scrapy.Field()  # "Competitive - Open bidding", etc.
+    contact_name = scrapy.Field()
+    contact_email = scrapy.Field()
+    contact_phone = scrapy.Field()
+    buyer_city = scrapy.Field()
+    buyer_postal_code = scrapy.Field()
+    delivery_regions = scrapy.Field()  # comma-separated regions
+    end_user_entity = scrapy.Field()   # actual department using the goods/services
+    contract_start_date = scrapy.Field()
+    contract_end_date = scrapy.Field()
+    selection_criteria = scrapy.Field()
+    trade_agreements = scrapy.Field()
+    solicitation_number = scrapy.Field()

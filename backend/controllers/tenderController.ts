@@ -195,6 +195,7 @@ export class TenderController {
         category,
         region,
         entity,
+        procurement_type,
       } = req.query;
 
       // Validate pagination parameters
@@ -231,6 +232,7 @@ export class TenderController {
           category: category as string,
           region: region as string,
           entity: entity as string,
+          procurement_type: procurement_type as string,
         },
       });
 

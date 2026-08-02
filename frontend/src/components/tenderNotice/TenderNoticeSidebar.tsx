@@ -6,6 +6,7 @@ import {
   Building,
   Globe,
   Bookmark,
+  MapPin,
 } from "@phosphor-icons/react";
 
 interface TenderNoticeSidebarProps {
@@ -20,6 +21,7 @@ interface TenderNoticeSidebarProps {
     contracting_entity_city: string | null;
     contracting_entity_province: string | null;
     contracting_entity_country: string | null;
+    delivery_location: string | null;
     source_url: string | null;
   };
   isBookmarked: boolean;
@@ -42,237 +44,138 @@ export function TenderNoticeSidebar({
   if (compact) {
     return (
       <div className="flex w-full bg-surface border border-border rounded-lg p-4 gap-4 text-sm">
-        {/* Dates */}
         <div className="flex-1 space-y-1">
           <h3 className="font-semibold text-text flex items-center gap-2 mb-1">
             <Calendar className="w-4 h-4" /> Dates
           </h3>
-          <p>
-            <span className="font-medium">Pub:</span>{" "}
-            {formatDate(tender.published_date)}
-          </p>
+          <p><span className="font-medium">Pub:</span> {formatDate(tender.published_date)}</p>
           <p className={isUrgent ? "text-error font-medium" : ""}>
-            <span className="font-medium">Close:</span>{" "}
-            {formatDateTime(tender.closing_date)}
+            <span className="font-medium">Close:</span> {formatDateTime(tender.closing_date)}
           </p>
-          {tender.contract_start_date && (
-            <p>
-              <span className="font-medium">Start:</span>{" "}
-              {formatDate(tender.contract_start_date)}
-            </p>
-          )}
         </div>
-
-        {/* Contact */}
-        {(tender.contact_name ||
-          tender.contact_email ||
-          tender.contact_phone) && (
+        {tender.contact_name && (
           <div className="flex-1 space-y-1">
             <h3 className="font-semibold text-text flex items-center gap-2 mb-1">
               <User className="w-4 h-4" /> Contact
             </h3>
-            {tender.contact_name && (
-              <p>
-                <span className="font-medium">Name:</span> {tender.contact_name}
-              </p>
-            )}
-            {tender.contact_email && (
-              <p className="flex items-center gap-1">
-                <Envelope className="w-4 h-4" />
-                <a
-                  href={`mailto:${tender.contact_email}`}
-                  className="text-primary hover:underline"
-                >
-                  {tender.contact_email}
-                </a>
-              </p>
-            )}
-            {tender.contact_phone && (
-              <p className="flex items-center gap-1">
-                <Phone className="w-4 h-4" />
-                <a
-                  href={`tel:${tender.contact_phone}`}
-                  className="text-primary hover:underline"
-                >
-                  {tender.contact_phone}
-                </a>
-              </p>
-            )}
+            <p>{tender.contact_name}</p>
           </div>
         )}
-
-        {/* Entity */}
-        <div className="flex-1 space-y-1">
-          <h3 className="font-semibold text-text flex items-center gap-2 mb-1">
-            <Building className="w-4 h-4" /> Entity
-          </h3>
-          <p>
-            <span className="font-medium">Org:</span>{" "}
-            {tender.contracting_entity_name || "Not specified"}
-          </p>
-          {(tender.contracting_entity_city ||
-            tender.contracting_entity_province ||
-            tender.contracting_entity_country) && (
-            <p>
-              <span className="font-medium">Loc:</span>{" "}
-              {[
-                tender.contracting_entity_city,
-                tender.contracting_entity_province,
-                tender.contracting_entity_country,
-              ]
-                .filter(Boolean)
-                .join(", ")}
-            </p>
-          )}
-        </div>
       </div>
     );
   }
+
+  const hasContact = tender.contact_name || tender.contact_email || tender.contact_phone;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Important Dates */}
-      <div className="bg-surface border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
+      <div className="bg-surface border border-border rounded-lg p-5">
+        <h3 className="text-sm font-semibold text-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+          <Calendar className="w-4 h-4" />
           Important Dates
         </h3>
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-medium text-text">
-              Publication Date
-            </label>
-            <p className="text-text-light">
-              {formatDate(tender.published_date)}
-            </p>
+            <label className="text-xs text-text-muted">Publication Date</label>
+            <p className="text-sm text-text font-medium">{formatDate(tender.published_date)}</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-text">
-              Closing Date
-            </label>
-            <p
-              className={
-                isUrgent ? "text-error font-medium" : "text-text-light"
-              }
-            >
+            <label className="text-xs text-text-muted">Closing Date</label>
+            <p className={`text-sm font-medium ${isUrgent ? "text-error" : "text-text"}`}>
               {formatDateTime(tender.closing_date)}
             </p>
           </div>
           {tender.contract_start_date && (
             <div>
-              <label className="text-sm font-medium text-text">
-                Expected Start Date
-              </label>
-              <p className="text-text-light">
-                {formatDate(tender.contract_start_date)}
-              </p>
+              <label className="text-xs text-text-muted">Expected Start</label>
+              <p className="text-sm text-text font-medium">{formatDate(tender.contract_start_date)}</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Contact Information */}
-      <div className="bg-surface border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
-          <User className="w-5 h-5" />
-          Contact Information
-        </h3>
-        <div className="space-y-3">
-          {tender.contact_name && (
-            <div>
-              <label className="text-sm font-medium text-text">
-                Contact Name
-              </label>
-              <p className="text-text-light">{tender.contact_name}</p>
-            </div>
-          )}
-          {tender.contact_email && (
-            <div>
-              <label className="text-sm font-medium text-text">Email</label>
+      {hasContact && (
+        <div className="bg-surface border border-border rounded-lg p-5">
+          <h3 className="text-sm font-semibold text-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+            <User className="w-4 h-4" />
+            Contact
+          </h3>
+          <div className="space-y-2.5">
+            {tender.contact_name && (
+              <div>
+                <label className="text-xs text-text-muted">Name</label>
+                <p className="text-sm text-text">{tender.contact_name}</p>
+              </div>
+            )}
+            {tender.contact_email && (
               <a
                 href={`mailto:${tender.contact_email}`}
-                className="text-primary hover:text-primary-dark flex items-center gap-1"
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
               >
-                <Envelope className="w-4 h-4" />
+                <Envelope className="w-4 h-4 shrink-0" />
                 {tender.contact_email}
               </a>
-            </div>
-          )}
-          {tender.contact_phone && (
-            <div>
-              <label className="text-sm font-medium text-text">Phone</label>
+            )}
+            {tender.contact_phone && (
               <a
                 href={`tel:${tender.contact_phone}`}
-                className="text-primary hover:text-primary-dark flex items-center gap-1"
+                className="flex items-center gap-2 text-sm text-primary hover:underline"
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-4 h-4 shrink-0" />
                 {tender.contact_phone}
               </a>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Contracting Entity */}
-      <div className="bg-surface border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
-          <Building className="w-5 h-5" />
+      <div className="bg-surface border border-border rounded-lg p-5">
+        <h3 className="text-sm font-semibold text-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+          <Building className="w-4 h-4" />
           Contracting Entity
         </h3>
-        <div className="space-y-3">
-          <div>
-            <label className="text-sm font-medium text-text">
-              Organization
-            </label>
-            <p className="text-text-light">
-              {tender.contracting_entity_name || "Not specified"}
-            </p>
-          </div>
-          {(tender.contracting_entity_city ||
-            tender.contracting_entity_province ||
-            tender.contracting_entity_country) && (
-            <div>
-              <label className="text-sm font-medium text-text">Location</label>
-              <p className="text-text-light">
-                {[
-                  tender.contracting_entity_city,
-                  tender.contracting_entity_province,
-                  tender.contracting_entity_country,
-                ]
-                  .filter(Boolean)
-                  .join(", ")}
-              </p>
+        <div className="space-y-2">
+          <p className="text-sm text-text font-medium">
+            {tender.contracting_entity_name || "Not specified"}
+          </p>
+          {(tender.contracting_entity_city || tender.contracting_entity_province) && (
+            <div className="flex items-center gap-1.5 text-sm text-text-muted">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              {[tender.contracting_entity_city, tender.contracting_entity_province, tender.contracting_entity_country]
+                .filter(Boolean)
+                .join(", ")}
             </div>
           )}
         </div>
       </div>
 
       {/* Actions */}
-      <div className="bg-surface border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-text mb-4">Actions</h3>
-        <div className="space-y-3">
-          {tender.source_url && (
-            <a
-              href={tender.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
-            >
-              <Globe className="w-4 h-4" />
-              View Official Notice
-            </a>
-          )}
-          <button
-            onClick={onBookmark}
-            className={`w-full py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-              isBookmarked
-                ? "bg-accent text-white"
-                : "border border-border text-text hover:bg-border"
-            }`}
+      <div className="bg-surface border border-border rounded-lg p-5 space-y-3">
+        {tender.source_url && (
+          <a
+            href={tender.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full bg-primary text-white py-2.5 px-4 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 text-sm font-medium"
           >
-            <Bookmark className="w-4 h-4" />
-            {isBookmarked ? "Bookmarked" : "Bookmark Tender"}
-          </button>
-        </div>
+            <Globe className="w-4 h-4" />
+            View Official Notice
+          </a>
+        )}
+        <button
+          onClick={onBookmark}
+          className={`w-full py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium ${
+            isBookmarked
+              ? "bg-accent text-white"
+              : "border border-border text-text hover:bg-border"
+          }`}
+        >
+          <Bookmark className="w-4 h-4" />
+          {isBookmarked ? "Bookmarked" : "Bookmark Tender"}
+        </button>
       </div>
     </div>
   );

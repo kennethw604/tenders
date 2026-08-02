@@ -66,100 +66,129 @@ const NUMBER_OF_TENDERS_PER_PAGE = 25;
 // Create column helper
 const columnHelper = createColumnHelper<Tender>();
 
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "open":
+    case "active":
+      return "bg-success/10 text-success border-success/20";
+    case "closed":
+      return "bg-error/10 text-error border-error/20";
+    case "cancelled":
+      return "bg-text-muted/10 text-text-muted border-text-muted/20";
+    case "awarded":
+      return "bg-info/10 text-info border-info/20";
+    default:
+      return "bg-warning/10 text-warning border-warning/20";
+  }
+};
+
+const capitalize = (s: string | null) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+
 // Define table columns
 const tenderColumns = [
   columnHelper.accessor("title", {
     header: "Tender",
-    size: 300,
-    enableSorting: true,
-    cell: (info) => (
-      <Link
-        to={`/tender-notice/${info.row.original.id}`}
-        className="text-primary hover:text-primary-dark font-medium"
-      >
-        {info.getValue() || "Untitled"}
-      </Link>
-    ),
-  }),
-  columnHelper.accessor("contracting_entity_name", {
-    id: "entity_info",
-    header: "Entity Info",
-    size: 220,
+    size: 280,
     enableSorting: true,
     cell: (info) => {
       const tender = info.row.original;
-      const parts = [
-        tender.contracting_entity_name || "Unknown",
-        tender.contracting_entity_city,
-        tender.contracting_entity_province,
-        tender.contracting_entity_country,
-      ].filter(Boolean);
-      return parts.join(" — ");
+      return (
+        <div>
+          <Link
+            to={`/tender-notice/${tender.id}`}
+            className="text-primary hover:text-primary-dark font-medium text-sm"
+          >
+            {info.getValue() || "Untitled"}
+          </Link>
+          {tender.procurement_type && (
+            <span className="ml-2 px-1.5 py-0.5 bg-info/10 text-info text-[10px] rounded font-medium">
+              {tender.procurement_type.length > 30
+                ? tender.procurement_type.replace(/^Request for /, "RF").replace(/^Invitation to /, "IT")
+                : tender.procurement_type}
+            </span>
+          )}
+        </div>
+      );
+    },
+  }),
+  columnHelper.accessor("contracting_entity_name", {
+    id: "entity_info",
+    header: "Entity",
+    size: 200,
+    enableSorting: true,
+    cell: (info) => {
+      const tender = info.row.original;
+      return (
+        <div className="text-sm">
+          <div className="text-text font-medium truncate">{tender.contracting_entity_name || "Unknown"}</div>
+          <div className="text-text-muted text-xs truncate">
+            {[tender.contracting_entity_city, tender.contracting_entity_province]
+              .filter(Boolean)
+              .join(", ")}
+          </div>
+        </div>
+      );
     },
   }),
   columnHelper.accessor("category_primary", {
     header: "Category",
-    size: 130,
-    enableSorting: true,
-    cell: (info) => info.getValue() || "N/A",
-  }),
-  // Combined Date Range column instead of separate closing_date
-  columnHelper.accessor("published_date", {
-    id: "date_range",
-    header: "Date Range",
-    size: 180,
-    enableSorting: true,
-    cell: (info) => {
-      const tender = info.row.original;
-      const published = tender.published_date
-        ? new Date(tender.published_date).toLocaleDateString()
-        : "N/A";
-      const closing = tender.closing_date
-        ? new Date(tender.closing_date).toLocaleDateString()
-        : "N/A";
-      return `Published: ${published} — Closes: ${closing}`;
-    },
-  }),
-  columnHelper.accessor("status", {
-    header: "Status",
     size: 100,
     enableSorting: true,
     cell: (info) => {
-      const status = info.getValue() || "Unknown";
-      const getStatusColor = (status: string) => {
-        switch (status.toLowerCase()) {
-          case "open":
-          case "active":
-            return "bg-success/10 text-success border-success/20";
-          case "closed":
-            return "bg-error/10 text-error border-error/20";
-          case "cancelled":
-            return "bg-text-muted/10 text-text-muted border-text-muted/20";
-          case "awarded":
-            return "bg-info/10 text-info border-info/20";
-          default:
-            return "bg-warning/10 text-warning border-warning/20";
-        }
-      };
+      const val = info.getValue();
       return (
-        <span
-          className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(
-            status
-          )}`}
-        >
-          {status}
+        <span className="text-sm text-text">
+          {capitalize(val) || "N/A"}
         </span>
       );
     },
   }),
-  columnHelper.accessor("estimated_value_min", {
-    header: "Est. Value",
-    size: 120,
+  columnHelper.accessor("closing_date", {
+    header: "Closes",
+    size: 140,
     enableSorting: true,
-    cell: (info) =>
-      info.getValue() !== null
-        ? `$${info.getValue()?.toLocaleString()}`
-        : "N/A",
+    cell: (info) => {
+      const closing = info.getValue();
+      if (!closing) return <span className="text-text-muted text-sm">N/A</span>;
+      const date = new Date(closing);
+      const now = new Date();
+      const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const isUrgent = diffDays >= 0 && diffDays <= 7;
+      const isPast = diffDays < 0;
+      return (
+        <div className="text-sm">
+          <div className="text-text">{date.toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })}</div>
+          {!isPast && (
+            <span className={`text-xs ${isUrgent ? "text-error font-medium" : "text-text-muted"}`}>
+              {diffDays === 0 ? "Today" : diffDays === 1 ? "Tomorrow" : `${diffDays} days`}
+            </span>
+          )}
+        </div>
+      );
+    },
+  }),
+  columnHelper.accessor("procurement_method", {
+    header: "Method",
+    size: 160,
+    enableSorting: true,
+    cell: (info) => {
+      const val = info.getValue();
+      return <span className="text-sm text-text-muted">{val || "N/A"}</span>;
+    },
+  }),
+  columnHelper.accessor("status", {
+    header: "Status",
+    size: 90,
+    enableSorting: true,
+    cell: (info) => {
+      const status = info.getValue() || "Unknown";
+      return (
+        <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(status)}`}>
+          {capitalize(status)}
+        </span>
+      );
+    },
   }),
 ];
 export default function TenderTable({

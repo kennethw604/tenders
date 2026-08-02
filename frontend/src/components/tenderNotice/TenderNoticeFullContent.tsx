@@ -158,11 +158,11 @@ export function TenderNoticeFullContent({
       return (
         <div className="h-full flex items-center justify-center p-4">
           <div className="text-center">
-            <FileText className="w-12 h-12 text-text-light mx-auto mb-2" />
+            <FileText className="w-12 h-12 text-text-muted mx-auto mb-2" />
             <h3 className="text-lg font-semibold text-text mb-1">
               Select a Tender
             </h3>
-            <p className="text-sm text-text-light">
+            <p className="text-sm text-text-muted">
               Choose a tender to view details
             </p>
           </div>
@@ -172,9 +172,9 @@ export function TenderNoticeFullContent({
     return (
       <div className="max-w-4xl mx-auto p-8">
         <div className="text-center">
-          <FileText className="w-16 h-16 text-text-light mx-auto mb-4" />
+          <FileText className="w-16 h-16 text-text-muted mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-text mb-2">Select a Tender</h1>
-          <p className="text-text-light mb-6">
+          <p className="text-text-muted mb-6">
             You can view the full tender details by selecting a tender from the
             search results.
           </p>
@@ -197,7 +197,7 @@ export function TenderNoticeFullContent({
               className={`p-1 rounded transition-colors flex-shrink-0 ${
                 isBookmarked
                   ? "text-primary"
-                  : "text-text-light hover:text-text"
+                  : "text-text-muted hover:text-text"
               }`}
             >
               <Bookmark className="w-3 h-3" />
@@ -225,7 +225,7 @@ export function TenderNoticeFullContent({
             )}
           </div>
 
-          <div className="text-xs text-text-light">
+          <div className="text-xs text-text-muted">
             <div className="flex items-center gap-1 mb-1">
               <Building className="w-3 h-3" />
               <span className="truncate">

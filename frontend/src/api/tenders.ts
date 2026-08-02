@@ -35,6 +35,7 @@ export interface PaginatedTendersParams {
   category?: string;
   region?: string;
   entity?: string;
+  procurement_type?: string;
 }
 
 export interface PaginatedTendersResponse {
@@ -73,6 +74,7 @@ export const getTendersPaginated = async (
     if (params.category) searchParams.append("category", params.category);
     if (params.region) searchParams.append("region", params.region);
     if (params.entity) searchParams.append("entity", params.entity);
+    if (params.procurement_type) searchParams.append("procurement_type", params.procurement_type);
 
     const response = await apiClient.get(
       `/tenders/paginated?${searchParams.toString()}`

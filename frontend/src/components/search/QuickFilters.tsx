@@ -42,43 +42,47 @@ const QuickFilters = ({
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Filter options based on available data
+  // Filter options — values must match actual DB data
   const regions = [
-    "Ontario",
-    "British Columbia",
-    "Alberta",
-    "Quebec",
-    "Manitoba",
-    "Saskatchewan",
-    "Nova Scotia",
-    "New Brunswick",
-    "Newfoundland and Labrador",
-    "Prince Edward Island",
+    { value: "ON", label: "Ontario" },
+    { value: "BC", label: "British Columbia" },
+    { value: "AB", label: "Alberta" },
+    { value: "QC", label: "Quebec" },
+    { value: "MB", label: "Manitoba" },
+    { value: "SK", label: "Saskatchewan" },
+    { value: "NS", label: "Nova Scotia" },
+    { value: "NB", label: "New Brunswick" },
+    { value: "NL", label: "Newfoundland & Labrador" },
+    { value: "PE", label: "Prince Edward Island" },
+    { value: "NT", label: "Northwest Territories" },
+    { value: "NU", label: "Nunavut" },
+    { value: "YT", label: "Yukon" },
   ];
 
   const procurementCategories = [
-    "Information Technology",
-    "Construction",
-    "Professional Services",
-    "Medical and Health Services",
-    "Engineering Services",
-    "Maintenance and Repair",
-    "Transportation",
-    "Security Services",
-    "Cleaning Services",
-    "Office Supplies",
+    { value: "goods", label: "Goods" },
+    { value: "services", label: "Services" },
+    { value: "works", label: "Works" },
   ];
 
-  const noticeTypes = [
-    "Advance Contract Award Notice",
-    "Request for Proposal",
-    "Request for Quotation",
-    "Invitation to Qualify",
-    "Contract Award Notice",
-    "Standing Offer",
+  const procurementTypes = [
+    { value: "RFP", label: "RFP — Request for Proposal" },
+    { value: "RFQ", label: "RFQ — Request for Quotation" },
+    { value: "RFI", label: "RFI — Request for Information" },
+    { value: "RFB", label: "RFB — Request for Bids" },
+    { value: "ITT", label: "ITT — Invitation to Tender" },
+    { value: "ITQ", label: "ITQ — Invitation to Qualify" },
+    { value: "RFSO", label: "RFSO — Standing Offer" },
+    { value: "RFSA", label: "RFSA — Supply Arrangement" },
+    { value: "ACAN", label: "ACAN — Advance Contract Award" },
   ];
 
-  const tenderStatuses = ["Active", "Open", "Closed", "Cancelled", "Awarded"];
+  const tenderStatuses = [
+    { value: "open", label: "Open" },
+    { value: "closed", label: "Closed" },
+    { value: "awarded", label: "Awarded" },
+    { value: "cancelled", label: "Cancelled" },
+  ];
 
   // Extract unique organizations from tender data
   const organizations = Array.from(
@@ -95,34 +99,31 @@ const QuickFilters = ({
       icon: Tag,
       label: "Category",
       key: "category",
-      options: procurementCategories.map((cat) => ({ value: cat, label: cat })),
+      options: procurementCategories,
     },
     {
       icon: MapPin,
       label: "Region",
       key: "region",
-      options: regions.map((region) => ({ value: region, label: region })),
+      options: regions,
+    },
+    {
+      icon: FunnelSimple,
+      label: "Type",
+      key: "procurement_type",
+      options: procurementTypes,
     },
     {
       icon: Buildings,
       label: "Organization",
-      key: "organization",
+      key: "entity",
       options: organizations.map((org) => ({ value: org, label: org })),
-    },
-    {
-      icon: FunnelSimple,
-      label: "Notice Type",
-      key: "notice_type",
-      options: noticeTypes.map((type) => ({ value: type, label: type })),
     },
     {
       icon: Clock,
       label: "Status",
       key: "status",
-      options: tenderStatuses.map((status) => ({
-        value: status,
-        label: status,
-      })),
+      options: tenderStatuses,
     },
   ];
 
@@ -146,23 +147,21 @@ const QuickFilters = ({
 
     let filtered = tenders;
 
-    // Apply active filters
+    // Apply active filters — extract the DB value from filter ID
     activeFilters.forEach((filter) => {
+      const filterValue = filter.id.substring(filter.type.length + 1);
       filtered = filtered.filter((tender) => {
         switch (filter.type) {
           case "category":
-            return tender.category_primary?.includes(filter.label);
+            return tender.category_primary?.toLowerCase() === filterValue.toLowerCase();
           case "region":
-            return (
-              tender.contracting_entity_province === filter.label ||
-              tender.delivery_location?.includes(filter.label)
-            );
-          case "organization":
-            return tender.contracting_entity_name === filter.label;
-          case "notice_type":
-            return tender.procurement_type === filter.label;
+            return tender.contracting_entity_province === filterValue;
+          case "entity":
+            return tender.contracting_entity_name === filterValue;
+          case "procurement_type":
+            return tender.procurement_type === filterValue;
           case "status":
-            return tender.status === filter.label;
+            return tender.status?.toLowerCase() === filterValue.toLowerCase();
           default:
             return true;
         }
@@ -172,28 +171,24 @@ const QuickFilters = ({
     onFilteredDataChange(filtered);
   }, [activeFilters, tenders, onFilteredDataChange]);
 
+  // Build server-side filter params from active filters
+  const buildFilterParams = (filters: FilterOption[]) => {
+    const params: Record<string, string> = {};
+    // Use the last filter of each type (one value per filter key)
+    filters.forEach((filter) => {
+      params[filter.type] = filter.id.substring(filter.type.length + 1);
+    });
+    return params;
+  };
+
   const addFilter = (type: string, value: string, label: string) => {
     const filterId = `${type}-${value}`;
     if (!activeFilters.find((f) => f.id === filterId)) {
       const newFilters = [...activeFilters, { id: filterId, label, type }];
       setActiveFilters(newFilters);
 
-      // Update server-side filters if using pagination
       if (usePagination && onFilterChange) {
-        const filterParams: Record<string, string> = {};
-        newFilters.forEach((filter) => {
-          const [filterType, filterValue] = filter.id.split("-");
-          if (filterType === "regions") {
-            filterParams.region = filterValue;
-          } else if (filterType === "categories") {
-            filterParams.category = filterValue;
-          } else if (filterType === "statuses") {
-            filterParams.status = filterValue;
-          } else if (filterType === "entities") {
-            filterParams.entity = filterValue;
-          }
-        });
-        onFilterChange(filterParams);
+        onFilterChange(buildFilterParams(newFilters));
       }
     }
     setShowDropdown(null);
@@ -203,22 +198,8 @@ const QuickFilters = ({
     const newFilters = activeFilters.filter((f) => f.id !== filterId);
     setActiveFilters(newFilters);
 
-    // Update server-side filters if using pagination
     if (usePagination && onFilterChange) {
-      const filterParams: Record<string, string> = {};
-      newFilters.forEach((filter) => {
-        const [filterType, filterValue] = filter.id.split("-");
-        if (filterType === "regions") {
-          filterParams.region = filterValue;
-        } else if (filterType === "categories") {
-          filterParams.category = filterValue;
-        } else if (filterType === "statuses") {
-          filterParams.status = filterValue;
-        } else if (filterType === "entities") {
-          filterParams.entity = filterValue;
-        }
-      });
-      onFilterChange(filterParams);
+      onFilterChange(buildFilterParams(newFilters));
     }
   };
 

@@ -35,9 +35,9 @@
   --color-surface-warm: #fef7ed; /* Warm highlight background */
 
   /* Text Colors */
-  --color-text: #34455d; /* Dark gray for readability */
-  --color-text-muted: #6b7280; /* Lighter gray for secondary text */
-  --color-text-light: #9ca3af; /* Even lighter gray for subtle text */
+  --color-text: #0f172a; /* Near black for readability */
+  --color-text-muted: #334155; /* Dark gray for secondary text */
+  --color-text-light: #475569; /* Medium gray for subtle text */
   --color-text-warm: #92400e; /* Warm brown for highlights */
 
   /* Borders & Dividers */

@@ -44,3 +44,25 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - xpack.security.enabled=false
       - xpack.security.enrollment.enabled=false
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+
+  scraper:
+    build: ./scraper
+    env_file:
+      - ./scraper/.env
+    depends_on:
+      - redis
+    command: celery -A purchasingcad.celery_app worker --loglevel=info --pool=solo
+
+  celery-beat:
+    build: ./scraper
+    env_file:
+      - ./scraper/.env
+    depends_on:
+      - redis
+      - scraper
+    command: celery -A purchasingcad.celery_app beat --loglevel=info
